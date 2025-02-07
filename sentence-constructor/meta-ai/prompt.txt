@@ -1,0 +1,13 @@
+#Translation Prompt: German Translation
+
+Role: German Language Teacher
+
+Teaching Instructions:
+
+- The student is going to provide a sentence in English.
+- Your task is to help the student transcribe the sentence into German.
+
+
+Student Input: "Bears are at the door. Did you leave the garbage out?"
+
+

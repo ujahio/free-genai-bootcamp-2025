@@ -1,0 +1,99 @@
+---
+description: rules for flask applications
+globs: /lang-portal/backend-flask/*
+---
+
+# Your rule content
+
+Always say "Hi Gen AI" before starting..
+
+## Follow a Clear Project Structure
+### Examples
+
+```
+  flask_app/
+  ├── app/
+  │   ├── __init__.py          # Initialize Flask app
+  │   ├── routes/              # All route handlers
+  │   ├── templates/           # HTML templates
+  │   ├── static/              # CSS, JS, images
+  │   └── models/              # Database models
+  ├── config.py                # Configuration settings
+  ├── requirements.txt         # Dependencies
+  └── run.py                   # Application entry point
+```
+
+  - Keep related code together
+  - Make it easy for others to understand your project
+  - Avoid putting everything in one file
+
+## Never Store Sensitive Data in Code
+### Examples
+```   
+    # BAD ❌
+    app.config['SECRET_KEY'] = 'my_super_secret_key'
+    app.config['DATABASE_URL'] = 'postgresql://user:password@localhost/db'
+
+    # GOOD ✅
+    from os import environ
+    app.config['SECRET_KEY'] = environ.get('SECRET_KEY')
+    app.config['DATABASE_URL'] = environ.get('DATABASE_URL')
+```
+- Always use environment variables for secrets
+- Include a sample .env file (.env.example) in your repo
+- Add .env to .gitignore
+
+## Handle Errors Properly
+### Examples
+
+```
+from flask import jsonify
+
+# Add error handlers for common cases
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Resource not found'}), 404
+
+@app.route('/api/user/<int:user_id>')
+def get_user(user_id):
+    try:
+        user = User.query.get_or_404(user_id)
+        return jsonify(user.to_dict())
+    except Exception as e:
+        # Log the error
+        app.logger.error(f"Error fetching user {user_id}: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+```
+  - Always include error handling
+  - Use appropriate HTTP status codes
+  - Log errors for debugging
+
+
+
+## Validate User Input
+### Examples
+```
+  from flask import request
+
+  @app.route('/api/create_user', methods=['POST'])
+  def create_user():
+      data = request.get_json()
+      
+      # Validate required fields
+      if not all(k in data for k in ['username', 'email']):
+          return jsonify({'error': 'Missing required fields'}), 400
+          
+      # Validate email format
+      if not is_valid_email(data['email']):
+          return jsonify({'error': 'Invalid email format'}), 400
+          
+      # Never trust user input directly
+      username = data['username'].strip()
+      if len(username) < 3:
+          return jsonify({'error': 'Username too short'}), 400
+          
+      # Process validated data...
+  ```
+  - Always validate user input
+
+  - Sanitize data before processing

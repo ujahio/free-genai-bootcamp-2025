@@ -96,42 +96,42 @@ This document outlines the step-by-step plan for implementing the POST `/api/stu
         return jsonify({"error": str(e)}), 500
     ```
 
-- [ ] **Step 8: Write Tests for the Endpoint**
+- [x] **Step 8: Write Tests for the Endpoint**
 
-  - [ ] **Test Valid Input:** Write a test that sends a valid JSON payload and asserts that:
+  - [x] **Test Valid Input:** Write a test that sends a valid JSON payload and asserts that:
     - The response status code is `201`.
     - The response JSON contains the expected fields (e.g., `id`, `group_id`, `activity_id`, etc.).
-  - [ ] **Test Missing Fields:** Write tests that send invalid payloads (e.g., missing `group_id` or `study_activity_id`) and assert that the response status code is `400` and an error message is returned.
-  - [ ] **Example Test Code Using pytest and Flask's Test Client:**
+  - [x] **Test Missing Fields:** Write tests that send invalid payloads (e.g., missing `group_id` or `study_activity_id`) and assert that the response status code is `400` and an error message is returned.
+  - **Example Test Code Using pytest and Flask's Test Client:**
 
-    ```python
-    def test_create_study_session_success(client):
-        data = {
-            "group_id": 1,
-            "study_activity_id": 2
-        }
-        response = client.post('/api/study-sessions', json=data)
-        assert response.status_code == 201
-        json_data = response.get_json()
-        assert "id" in json_data
-        assert json_data["group_id"] == data["group_id"]
-        assert json_data["activity_id"] == data["study_activity_id"]
+  ```python
+  def test_create_study_session_success(client):
+      data = {
+          "group_id": 1,
+          "study_activity_id": 2
+      }
+      response = client.post('/api/study-sessions', json=data)
+      assert response.status_code == 201
+      json_data = response.get_json()
+      assert "id" in json_data
+      assert json_data["group_id"] == data["group_id"]
+      assert json_data["activity_id"] == data["study_activity_id"]
 
-    def test_create_study_session_missing_field(client):
-        data = {
-            "group_id": 1
-            # Missing study_activity_id
-        }
-        response = client.post('/api/study-sessions', json=data)
-        assert response.status_code == 400
-        json_data = response.get_json()
-        assert "error" in json_data
-    ```
+  def test_create_study_session_missing_field(client):
+      data = {
+          "group_id": 1
+          # Missing study_activity_id
+      }
+      response = client.post('/api/study-sessions', json=data)
+      assert response.status_code == 400
+      json_data = response.get_json()
+      assert "error" in json_data
+  ```
 
 ## Final Review
 
-- [ ] **Review Code:** Ensure that all new code follows the project's style guidelines.
-- [ ] **Peer Review:** Have a peer or mentor review your implementation.
-- [ ] **Run All Tests:** Verify that all tests pass, including both unit and integration tests.
+- [x] **Review Code:** Ensure that all new code follows the project's style guidelines.
+- [x] **Peer Review:** Have a peer or mentor review your implementation.
+- [x] **Run All Tests:** Verify that all tests pass, including both unit and integration tests.
 
 By following these steps, you will create a robust and well-tested POST `/api/study-sessions` endpoint.

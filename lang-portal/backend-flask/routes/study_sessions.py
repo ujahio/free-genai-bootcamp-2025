@@ -4,8 +4,6 @@ from datetime import datetime
 import math
 
 def load(app):
-  # todo /study_sessions POST
-
   @app.route('/api/study-sessions', methods=['GET'])
   @cross_origin()
   def get_study_sessions():

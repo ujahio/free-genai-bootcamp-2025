@@ -4,9 +4,61 @@ from datetime import datetime
 import math
 
 def load(app):
-  @app.route('/api/study-sessions', methods=['GET'])
+  @app.route('/api/study-sessions', methods=['GET', 'POST'])
   @cross_origin()
   def get_study_sessions():
+
+    if request.method == 'POST':
+      try:
+        # Get and validate input data
+        data = request.get_json()
+        if not data or 'group_id' not in data or 'study_activity_id' not in data:
+          return jsonify({"error": "Missing required fields"}), 400
+
+        cursor = app.db.cursor()
+        created_at = datetime.now()
+
+        # Insert new study session
+        cursor.execute(
+          '''
+          INSERT INTO study_sessions (group_id, study_activity_id, created_at)
+          VALUES (?, ?, ?)
+          ''',
+          (data['group_id'], data['study_activity_id'], created_at)
+        )
+        app.db.commit()
+
+        # Get the newly created session
+        new_session_id = cursor.lastrowid
+        cursor.execute(
+          '''
+          SELECT ss.id, ss.group_id, g.name as group_name,
+                 sa.id as activity_id, sa.name as activity_name,
+                 ss.created_at
+          FROM study_sessions ss
+          JOIN groups g ON g.id = ss.group_id
+          JOIN study_activities sa ON sa.id = ss.study_activity_id
+          WHERE ss.id = ?
+          ''',
+          (new_session_id,)
+        )
+        new_session = cursor.fetchone()
+
+        return jsonify({
+          'id': new_session['id'],
+          'group_id': new_session['group_id'],
+          'group_name': new_session['group_name'],
+          'activity_id': new_session['activity_id'],
+          'activity_name': new_session['activity_name'],
+          'start_time': new_session['created_at'],
+          'end_time': new_session['created_at'],
+          'review_items_count': 0
+        }), 201
+
+      except Exception as e:
+        app.db.rollback()
+        return jsonify({"error": str(e)}), 500
+
     try:
       cursor = app.db.cursor()
       
@@ -149,7 +201,57 @@ def load(app):
     except Exception as e:
       return jsonify({"error": str(e)}), 500
 
-  # todo POST /study_sessions/:id/review
+  @app.route('/api/study-sessions/<session_id>/words/<word_id>/review', methods=['POST'])
+  @cross_origin()
+  def create_word_review(session_id, word_id):
+    try:
+        # Request validation
+        data = request.get_json()
+        if not data or 'correct' not in data:
+            return jsonify({"error": "Missing required field 'correct'"}), 400
+            
+        if not isinstance(data['correct'], bool):
+            return jsonify({"error": "Field 'correct' must be a boolean"}), 400
+
+        cursor = app.db.cursor()
+        
+        # Database validation
+        cursor.execute('SELECT id FROM study_sessions WHERE id = ?', (session_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Study session not found"}), 404
+            
+        cursor.execute('SELECT id FROM words WHERE id = ?', (word_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Word not found"}), 404
+
+        # Insert the review
+        cursor.execute('''
+            INSERT INTO word_review_items (word_id, study_session_id, correct)
+            VALUES (?, ?, ?)
+        ''', (word_id, session_id, data['correct']))
+        
+        app.db.commit()
+
+        # Get and return the inserted review
+        cursor.execute('''
+            SELECT id, word_id, study_session_id, correct, created_at
+            FROM word_review_items
+            WHERE id = ?
+        ''', (cursor.lastrowid,))
+        
+        review = cursor.fetchone()
+        
+        return jsonify({
+            'id': review['id'],
+            'word_id': review['word_id'],
+            'study_session_id': review['study_session_id'],
+            'correct': bool(review['correct']),
+            'created_at': review['created_at']
+        }), 201
+
+    except Exception as e:
+        app.db.rollback()
+        return jsonify({"error": str(e)}), 500
 
   @app.route('/api/study-sessions/reset', methods=['POST'])
   @cross_origin()
@@ -167,57 +269,4 @@ def load(app):
       
       return jsonify({"message": "Study history cleared successfully"}), 200
     except Exception as e:
-      return jsonify({"error": str(e)}), 500
-
-  @app.route('/api/study-sessions', methods=['POST'])
-  @cross_origin()
-  def create_study_session():
-    try:
-      # Get and validate input data
-      data = request.get_json()
-      if not data or 'group_id' not in data or 'study_activity_id' not in data:
-        return jsonify({"error": "Missing required fields"}), 400
-
-      cursor = app.db.cursor()
-      created_at = datetime.now()
-
-      # Insert new study session
-      cursor.execute(
-        '''
-        INSERT INTO study_sessions (group_id, study_activity_id, created_at)
-        VALUES (?, ?, ?)
-        ''',
-        (data['group_id'], data['study_activity_id'], created_at)
-      )
-      app.db.commit()
-
-      # Get the newly created session
-      new_session_id = cursor.lastrowid
-      cursor.execute(
-        '''
-        SELECT ss.id, ss.group_id, g.name as group_name,
-               sa.id as activity_id, sa.name as activity_name,
-               ss.created_at
-        FROM study_sessions ss
-        JOIN groups g ON g.id = ss.group_id
-        JOIN study_activities sa ON sa.id = ss.study_activity_id
-        WHERE ss.id = ?
-        ''',
-        (new_session_id,)
-      )
-      new_session = cursor.fetchone()
-
-      return jsonify({
-        'id': new_session['id'],
-        'group_id': new_session['group_id'],
-        'group_name': new_session['group_name'],
-        'activity_id': new_session['activity_id'],
-        'activity_name': new_session['activity_name'],
-        'start_time': new_session['created_at'],
-        'end_time': new_session['created_at'],  # Using same time as start for now
-        'review_items_count': 0  # New session starts with 0 reviews
-      }), 201
-
-    except Exception as e:
-      app.db.rollback()
       return jsonify({"error": str(e)}), 500

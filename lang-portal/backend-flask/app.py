@@ -36,7 +36,7 @@ def create_app(test_config=None):
     
     if test_config is None:
         app.config.from_mapping(
-            DATABASE='database.db'
+            DATABASE='words.db'
         )
     else:
         app.config.update(test_config)

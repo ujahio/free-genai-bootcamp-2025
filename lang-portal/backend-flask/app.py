@@ -1,4 +1,4 @@
-from flask import Flask, g
+from flask import Flask, g, jsonify
 from flask_cors import CORS
 
 from lib.db import Db
@@ -31,38 +31,25 @@ def get_allowed_origins(app):
 def create_app(test_config=None):
     app = Flask(__name__)
     
+    # Apply CORS
+    CORS(app)
+    
     if test_config is None:
         app.config.from_mapping(
-            DATABASE='words.db'
+            DATABASE='database.db'
         )
     else:
         app.config.update(test_config)
     
-    # Initialize database first since we need it for CORS configuration
+    # Initialize database
     app.db = Db(database=app.config['DATABASE'])
-    
-    # Get allowed origins from study_activities table
-    allowed_origins = get_allowed_origins(app)
-    
-    # In development, add localhost to allowed origins
-    if app.debug:
-        allowed_origins.extend(["http://localhost:8080", "http://127.0.0.1:8080"])
-    
-    # Configure CORS with combined origins
-    CORS(app, resources={
-        r"/*": {
-            "origins": allowed_origins,
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
 
     # Close database connection
     @app.teardown_appcontext
     def close_db(exception):
         app.db.close()
 
-    # load routes -----------
+    # load routes
     routes.words.load(app)
     routes.groups.load(app)
     routes.study_sessions.load(app)
@@ -74,4 +61,4 @@ def create_app(test_config=None):
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5001)

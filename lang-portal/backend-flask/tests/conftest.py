@@ -11,7 +11,7 @@ from routes import load  # Now this should work as the parent directory is in sy
 def create_app():
     app = Flask(__name__)
     app.config['TESTING'] = True
-    app.config['BASE_URL'] = 'http://localhost:5000'  # Add your base URL here
+    app.config['BASE_URL'] = 'http://localhost:5001'  # Add your base URL here
 
     # Setup an in-memory SQLite database for testing.
     conn = sqlite3.connect(":memory:")
@@ -48,6 +48,41 @@ def create_app():
             FOREIGN KEY (study_activity_id) REFERENCES study_activities(id)
         )
     """)
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS words (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kanji TEXT NOT NULL,
+            romaji TEXT NOT NULL,
+            english TEXT NOT NULL
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS word_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            word_id INTEGER NOT NULL,
+            study_session_id INTEGER NOT NULL,
+            correct BOOLEAN NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (word_id) REFERENCES words (id),
+            FOREIGN KEY (study_session_id) REFERENCES study_sessions (id)
+        )
+    ''')
+
+    # Create the 'word_review_items' table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS word_review_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            word_id INTEGER NOT NULL,
+            correct BOOLEAN NOT NULL,
+            study_session_id INTEGER NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (word_id) REFERENCES words (id),
+            FOREIGN KEY (study_session_id) REFERENCES study_sessions (id)
+        )
+    ''')
+    
     app.db.commit()
 
     # Load routes into the application so endpoints are available.
@@ -56,9 +91,13 @@ def create_app():
 
 @pytest.fixture
 def app():
+    # Use the create_app function which already has all the database setup
     app = create_app()
-    with app.app_context():
-        yield app
+    
+    yield app
+    
+    # Cleanup
+    app.db.close()
 
 @pytest.fixture
 def client(app):

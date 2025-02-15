@@ -14,7 +14,8 @@ export const API_ENDPOINTS = {
 	GROUPS: "/api/groups",
 	GROUP: (id: string) => `/api/groups/${id}`,
 
-	// Sessions
-	SESSIONS: "/api/sessions",
-	SESSION: (id: string) => `/api/sessions/${id}`,
+	// Study Sessions
+	STUDY_SESSIONS: "/api/study-sessions",
+	STUDY_SESSION: (id: string) => `/api/study-sessions/${id}`,
+	STUDY_SESSION_WORDS: (id: string) => `/api/study-sessions/${id}/words`,
 };

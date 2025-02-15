@@ -16,6 +16,7 @@ import Group from "./pages/Group";
 import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import StudySession from "./pages/StudySession";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
 							<Route path="/groups/:id" element={<Group />} />
 							<Route path="/sessions" element={<Sessions />} />
 							<Route path="/settings" element={<Settings />} />
+							<Route path="/study-sessions/:id" element={<StudySession />} />
 							<Route path="*" element={<NotFound />} />
 						</Routes>
 					</main>

@@ -270,3 +270,68 @@ def load(app):
       return jsonify({"message": "Study history cleared successfully"}), 200
     except Exception as e:
       return jsonify({"error": str(e)}), 500
+
+  @app.route('/api/study-sessions/<session_id>/words', methods=['GET'])
+  @cross_origin()
+  def get_study_session_words(session_id):
+    try:
+        cursor = app.db.cursor()
+        
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 100, type=int)  # Default to 100 items
+        offset = (page - 1) * per_page
+
+        # First verify the session exists
+        cursor.execute('SELECT id FROM study_sessions WHERE id = ?', (session_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Study session not found"}), 404
+
+        # Get total count of words for this session
+        cursor.execute('''
+            SELECT COUNT(DISTINCT w.id) as count
+            FROM words w
+            JOIN word_review_items wri ON wri.word_id = w.id
+            WHERE wri.study_session_id = ?
+        ''', (session_id,))
+        total_items = cursor.fetchone()['count']
+
+        # Get the words with their review counts for this session
+        cursor.execute('''
+            SELECT 
+                w.kanji as japanese,
+                w.romaji,
+                w.english,
+                COALESCE(SUM(CASE WHEN wri.correct = 1 THEN 1 ELSE 0 END), 0) as correct_count,
+                COALESCE(SUM(CASE WHEN wri.correct = 0 THEN 1 ELSE 0 END), 0) as wrong_count
+            FROM words w
+            JOIN word_review_items wri ON wri.word_id = w.id
+            WHERE wri.study_session_id = ?
+            GROUP BY w.id
+            ORDER BY w.kanji
+            LIMIT ? OFFSET ?
+        ''', (session_id, per_page, offset))
+        
+        words = cursor.fetchall()
+
+        # Calculate total pages
+        total_pages = math.ceil(total_items / per_page)
+
+        return jsonify({
+            'items': [{
+                'japanese': word['japanese'],
+                'romaji': word['romaji'],
+                'english': word['english'],
+                'correct_count': word['correct_count'],
+                'wrong_count': word['wrong_count']
+            } for word in words],
+            'pagination': {
+                'current_page': page,
+                'total_pages': total_pages,
+                'total_items': total_items,
+                'items_per_page': per_page
+            }
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

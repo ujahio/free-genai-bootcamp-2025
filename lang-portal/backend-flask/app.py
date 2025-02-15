@@ -8,6 +8,7 @@ import routes.groups
 import routes.study_sessions
 import routes.dashboard
 import routes.study_activities
+from routes import admin
 
 def get_allowed_origins(app):
     try:
@@ -55,6 +56,7 @@ def create_app(test_config=None):
     routes.study_sessions.load(app)
     routes.dashboard.load(app)
     routes.study_activities.load(app)
+    admin.load(app)
     
     return app
 

@@ -124,3 +124,50 @@ def load(app):
                 'name': group['name']
             } for group in groups]
         })
+
+    @app.route('/api/study-activities/<int:id>/launch', methods=['POST'])
+    @cross_origin()
+    def launch_study_activity(id):
+        try:
+            # Get request data
+            data = request.get_json()
+            group_id = data.get('group_id')
+            
+            if not group_id:
+                return jsonify({'error': 'group_id is required'}), 400
+
+            cursor = app.db.cursor()
+            
+            # Verify activity exists and get its URL
+            cursor.execute('SELECT id, name, url FROM study_activities WHERE id = ?', (id,))
+            activity = cursor.fetchone()
+            
+            if not activity:
+                return jsonify({'error': 'Activity not found'}), 404
+            
+            # Verify group exists
+            cursor.execute('SELECT id FROM groups WHERE id = ?', (group_id,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'Group not found'}), 404
+            
+            # Create new study session
+            cursor.execute('''
+                INSERT INTO study_sessions (group_id, study_activity_id)
+                VALUES (?, ?)
+            ''', (group_id, id))
+            
+            # Get the created session ID
+            session_id = cursor.lastrowid
+            
+            app.db.commit()
+            
+            return jsonify({
+                'session_id': session_id,
+                'launch_url': activity['url']
+            })
+            
+        except Exception as e:
+            app.db.rollback()
+            return jsonify({'error': str(e)}), 500
+        finally:
+            app.db.close()

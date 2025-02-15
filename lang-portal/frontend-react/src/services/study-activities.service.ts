@@ -8,6 +8,23 @@ export interface StudyActivity {
 	preview_url: string;
 }
 
+export interface LaunchData {
+	activity: StudyActivity;
+	groups: {
+		id: number;
+		name: string;
+	}[];
+}
+
+export interface LaunchRequest {
+	group_id: number;
+}
+
+export interface LaunchResponse {
+	session_id: number;
+	launch_url: string;
+}
+
 export interface StudySession {
 	id: number;
 	group_id: number;
@@ -34,5 +51,12 @@ export const StudyActivitiesService = {
 	getSessions: (id: string, page = 1) =>
 		apiService.get<StudySessionsResponse>(
 			`${API_ENDPOINTS.STUDY_ACTIVITY(id)}/sessions?page=${page}`
+		),
+	getLaunchData: (id: string) =>
+		apiService.get<LaunchData>(`${API_ENDPOINTS.STUDY_ACTIVITY(id)}/launch`),
+	launchActivity: (id: string, data: LaunchRequest) =>
+		apiService.post<LaunchResponse>(
+			`${API_ENDPOINTS.STUDY_ACTIVITY(id)}/launch`,
+			data
 		),
 };

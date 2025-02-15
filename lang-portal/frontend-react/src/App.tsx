@@ -17,41 +17,50 @@ import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import StudySession from "./pages/StudySession";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
 	<QueryClientProvider client={queryClient}>
-		<TooltipProvider>
-			<Toaster />
-			<Sonner />
-			<BrowserRouter>
-				<div className="min-h-screen flex flex-col">
-					<NavBar />
-					<Breadcrumbs />
-					<main className="flex-1">
-						<Routes>
-							<Route path="/" element={<Navigate to="/dashboard" replace />} />
-							<Route path="/dashboard" element={<Dashboard />} />
-							<Route path="/study-activities" element={<StudyActivities />} />
-							<Route path="/study-activities/:id" element={<StudyActivity />} />
-							<Route
-								path="/study-activities/:id/launch"
-								element={<StudyActivityLaunch />}
-							/>
-							<Route path="/words" element={<Words />} />
-							<Route path="/words/:id" element={<Word />} />
-							<Route path="/groups" element={<Groups />} />
-							<Route path="/groups/:id" element={<Group />} />
-							<Route path="/sessions" element={<Sessions />} />
-							<Route path="/settings" element={<Settings />} />
-							<Route path="/study-sessions/:id" element={<StudySession />} />
-							<Route path="*" element={<NotFound />} />
-						</Routes>
-					</main>
-				</div>
-			</BrowserRouter>
-		</TooltipProvider>
+		<ThemeProvider defaultTheme="system" storageKey="lang-portal-theme">
+			<TooltipProvider>
+				<Toaster />
+				<Sonner />
+				<BrowserRouter>
+					<div className="min-h-screen flex flex-col">
+						<NavBar />
+						<Breadcrumbs />
+						<main className="flex-1">
+							<Routes>
+								<Route
+									path="/"
+									element={<Navigate to="/dashboard" replace />}
+								/>
+								<Route path="/dashboard" element={<Dashboard />} />
+								<Route path="/study-activities" element={<StudyActivities />} />
+								<Route
+									path="/study-activities/:id"
+									element={<StudyActivity />}
+								/>
+								<Route
+									path="/study-activities/:id/launch"
+									element={<StudyActivityLaunch />}
+								/>
+								<Route path="/words" element={<Words />} />
+								<Route path="/words/:id" element={<Word />} />
+								<Route path="/groups" element={<Groups />} />
+								<Route path="/groups/:id" element={<Group />} />
+								<Route path="/sessions" element={<Sessions />} />
+								<Route path="/settings" element={<Settings />} />
+								<Route path="/study-sessions/:id" element={<StudySession />} />
+								<Route path="*" element={<NotFound />} />
+							</Routes>
+						</main>
+					</div>
+				</BrowserRouter>
+			</TooltipProvider>
+		</ThemeProvider>
 	</QueryClientProvider>
 );
 

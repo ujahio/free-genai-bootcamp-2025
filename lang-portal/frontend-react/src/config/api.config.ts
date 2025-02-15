@@ -3,18 +3,18 @@ export const API_BASE_URL =
 
 export const API_ENDPOINTS = {
 	// Study Activities
-	STUDY_ACTIVITIES: "/study-activities",
-	STUDY_ACTIVITY: (id: string) => `/study-activities/${id}`,
+	STUDY_ACTIVITIES: "/api/study-activities",
+	STUDY_ACTIVITY: (id: string) => `/api/study-activities/${id}`,
 
 	// Words
-	WORDS: "/words",
-	WORD: (id: string) => `/words/${id}`,
+	WORDS: "/api/words",
+	WORD: (id: string) => `/api/words/${id}`,
 
 	// Groups
-	GROUPS: "/groups",
-	GROUP: (id: string) => `/groups/${id}`,
+	GROUPS: "/api/groups",
+	GROUP: (id: string) => `/api/groups/${id}`,
 
 	// Sessions
-	SESSIONS: "/sessions",
-	SESSION: (id: string) => `/sessions/${id}`,
+	SESSIONS: "/api/sessions",
+	SESSION: (id: string) => `/api/sessions/${id}`,
 };
